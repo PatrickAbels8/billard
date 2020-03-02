@@ -1,11 +1,13 @@
-import socket
+from socket import AF_INET, socket, SOCK_STREAM
+from threading import Thread
+import time
 
-HOST = '127.0.0.1'
-PORT = 65432
+class Client:
+	HOST = '127.0.0.1'
+	PORT = 5500
+	ADDR = (HOST, PORT)
+	BUFSIZ = 512
 
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-	s.connect((HOST, PORT))
-	s.sendall(b'Hello, world')
-	data = s.recv(1024)
-
-print('Received', repr(data))
+	def __init__(self):
+		self.client_socket = socket(AF_INET, SOCK_STREAM)
+		self.client_socket.connect(self.ADDR)
