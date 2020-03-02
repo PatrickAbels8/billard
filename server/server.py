@@ -11,25 +11,46 @@ BUFSIZ = 512
 SERVER = socket(AF_INET, SOCK_STREAM)
 SERVER.bind(ADDR)
 
-# comment
-def game_loop():
-    pass
+color_number = [
+    [1, (204, 214, 39)],
+    [9, (204, 214, 39)],
+    [2, (27, 78, 213)],
+    [10, (27, 78, 213)],
+    [3, (213, 35, 27)],
+    [11, (213, 35, 27)],
+    [4, (153, 24, 176)],
+    [12, (153, 24, 176)],
+    [5, (226, 137, 37)],
+    [13, (226, 137, 37)],
+    [6, (58, 201, 19)],
+    [14, (58, 201, 19)],
+    [7, (131, 4, 4)],
+    [15, (131, 4, 4)],
+    [8, (0, 0, 0)],
+]
 
 
-def render_board():
-    pass
+class Game:
+    def __init__(self):
+        self.balls = [Ball(i) for i in color_number]
+
+    def make_shot(self):
+        pass
 
 
-def make_shot():
-    pass
+class Ball:
+    def __init__(self, id):
+        self.id, self.color = id
+        # self.color = color_number[str(self.id + 1)]
 
 
-def call_player():
-    pass
+class Player:
+    def __init__(self):
+        pass
 
 
-if __name__ == "__main__":
-    SERVER.listen(2)  # waiting for 2 clients
-    print("Waiting for 2 players...")
-
-    SERVER.close()
+G = Game()
+for i in G.balls:
+    print(i.id)  # , i.color)
+for i in color_number:
+    print(color_number[i])
