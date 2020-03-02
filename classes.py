@@ -1,15 +1,4 @@
-from socket import AF_INET, socket, SOCK_STREAM
-from threading import Thread
-import time
-
-
-HOST = "127.0.0.1"
-PORT = 5500
-ADDR = (HOST, PORT)
-BUFSIZ = 512
-
-SERVER = socket(AF_INET, SOCK_STREAM)
-SERVER.bind(ADDR)
+import numpy as np
 
 color_number = [
     [1, (204, 214, 39)],
@@ -31,8 +20,7 @@ color_number = [
 
 
 class Game:
-    def __init__(self):
-
+    def __init__(self, off_x=0, off_y=0):
         self.balls = [Ball(i) for i in color_number]
 
     def make_shot(self):
@@ -49,7 +37,22 @@ class Player:
         pass
 
 
-G = Game()
-for i in G.balls:
-    print(i.id, i.color)
+class vec(object):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
 
+    def __add__(self, other):
+        return vec(self.x + other.x, self.y + other.y)
+
+    def __sub__(self, other):
+        return vec(self.x - other.x, self.y - other.y)
+
+    def __mul__(self, other):
+        if type(other) == int or type(other) == float:
+            return vec(self.x * other, self.y * other)
+        else:
+            return self.x * other.x + self.y * other.y
+
+    def __str__(self):
+        return f"{[self.x, self.y]}"
