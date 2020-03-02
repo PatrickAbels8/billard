@@ -26,17 +26,15 @@ print(a - b)
 print(a * b)
 print(a * 5)
 
-from p5 import *
+import matplotlib.pyplot as plt
+import numpy as np
+
+ti = np.linspace(0, 100, 101)
 
 
-def setup():
-    size(640, 360)
-    no_stroke()
-    background(204)
+def model(iv):
+    return np.exp(-iv * 0.05)  # + 10 * np.exp(-iv * 0.04)
 
 
-def draw():
-    circle((mouse_x, mouse_y), 5)
-
-
-run()
+plt.plot(ti, model(ti))
+plt.show()
