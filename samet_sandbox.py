@@ -26,3 +26,17 @@ print(a - b)
 print(a * b)
 print(a * 5)
 
+from p5 import *
+
+
+def setup():
+    size(640, 360)
+    no_stroke()
+    background(204)
+
+
+def draw():
+    circle((mouse_x, mouse_y), 5)
+
+
+run()
