@@ -2,69 +2,53 @@ from numpy import sqrt
 
 s2 = sqrt(2)
 scale = 5
-color_number = [
-    [1, (204, 214, 39), [0, 0]],
-    [9, (204, 214, 39), [2, 0]],
-    [2, (27, 78, 213), [4, 0]],
-    [10, (27, 78, 213), [6, 0]],
-    [3, (213, 35, 27), [8, 0]],
-    [11, (213, 35, 27), [1, s2 * 2]],
-    [4, (153, 24, 176), [3, s2 * 2]],
-    [12, (153, 24, 176), [5, s2 * 2]],
-    [5, (226, 137, 37), [7, s2 * 2]],
-    [13, (226, 137, 37), [2, s2 * 4]],
-    [6, (58, 201, 19), [4, s2 * 4]],
-    [14, (58, 201, 19), [6, s2 * 4]],
-    [7, (131, 4, 4), [3, s2 * 6]],
-    [15, (131, 4, 4), [5, s2 * 6]],
-    [8, (0, 0, 0), [4, s2 * 8]],
-]
 
-
-class Game:
-    def __init__(self, off_x=0, off_y=0):
-        self.white = ball(0, (255, 255, 255), [0.5, 0.5])
-        self.off_x, self.off_y = off_x, off_y
-
-    def make_shot(self):
-        pass
+gamma = 0.5
 
 
 class Ball:
-    def __init__(self, id, off_x, off_y):
-        self.id, self.color, self.position = id
-        self.off_x, self.off_y = off_x, off_y
+    def __init__(self, pos, vel, other=None):
+        self.pos = pos
+        self.vel = vel
+        self.other = other
 
-        x, y = self.position
+    def move(self):
+        self.pos[0], self.pos[1] = self.pos[0] + self.vel, self.pos[1] + self.vel
+        self.vel = self.vel * gamma
 
-        self.position = [(x + self.off_x) * scale, (y + self.off_y) * scale]
-
-
-class Player:
-    def __init__(self):
-        pass
+        return self.pos
 
 
-class posvec(object):
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
+"""
+from p5 import *
 
-    def __add__(self, other):
-        return posvec(self.x + other.x, self.y + other.y)
+HEIGHT = 600
+WIDTH = 1200
+FPS = 50
 
-    def __sub__(self, other):
-        return posvec(self.x - other.x, self.y - other.y)
-
-    def __mul__(self, other):
-        if type(other) == int or type(other) == float:
-            return posvec(self.x * other, self.y * other)
-        else:
-            return self.x * other.x + self.y * other.y
-
-    def __str__(self):
-        return f"{[self.x, self.y]}"
+MARGIN = 40
+BOARD_HEIGHT = HEIGHT - 2 * MARGIN
+BOARD_WIDTH = WIDTH - 2 * MARGIN
 
 
-G = Game(10, 10)
+B = Ball([200, 200], [5, 5])
+
+
+def setup():
+    size(640, 360)
+    no_stroke()
+    background(204)
+
+
+def draw():
+    print(B.pos)
+    B.move()
+    print(B.pos)
+    circle(B.pos, 20)
+
+    clear()
+
+
+run()
+"""
 
