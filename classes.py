@@ -6,6 +6,11 @@ scale = 5
 gamma = 0.5
 
 
+class Game:
+    def __init__(self):
+        pass
+
+
 class Ball:
     def __init__(self, pos, vel, other=None):
         self.pos = pos
@@ -13,13 +18,13 @@ class Ball:
         self.other = other
 
     def move(self):
-        self.pos[0], self.pos[1] = self.pos[0] + self.vel, self.pos[1] + self.vel
+        self.pos[0] *= gamma
+        self.pos[1] *= gamma
         self.vel = self.vel * gamma
 
         return self.pos
 
 
-"""
 from p5 import *
 
 HEIGHT = 600
@@ -50,5 +55,4 @@ def draw():
 
 
 run()
-"""
 
