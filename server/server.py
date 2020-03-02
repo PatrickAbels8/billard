@@ -1,7 +1,14 @@
 from socket import AF_INET, socket, SOCK_STREAM
 from threading import Thread
 import time
+import os, sys, inspect
 
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parrentdir = os.path.dirname(currentdir)
+sys.path.insert(0, parrentdir)
+
+import classes
+import frontend.gui as gui
 
 HOST = "127.0.0.1"
 PORT = 5500
@@ -10,6 +17,9 @@ BUFSIZ = 512
 
 SERVER = socket(AF_INET, SOCK_STREAM)
 SERVER.bind(ADDR)
+
+players = []
+turn = True
 
 color_number = [
     [1, (204, 214, 39)],
@@ -30,28 +40,51 @@ color_number = [
 ]
 
 
-class Game:
-    def __init__(self):
-
-        self.balls = [Ball(i) for i in color_number]
-
-    def make_shot(self):
-        pass
-
-
-class Ball:
-    def __init__(self, id):
-        self.id, self.color = id
-
-
 class Player:
-    def __init__(self):
-        pass
+	def __init__(self, addr, client, first):
+		self.addr = addr
+		self.client = client
+		self.first = first
+
+
+def client_communication(player, balls):
+	client = player.client
+	while True:
+		shot = client.recv(BUFSIZ)
+		for ball in balls:
+			if ball.number == '0':
+				ball.move(shot)
+		turn = not turn
+
+
+def wait_for_connection():
+	while len(players)<2:
+		try:
+			client, addr = SERVER.accept()
+			player = Player(addr, client, first=True if len(players) < 1 else False)
+			players.append(player)
+
+			print(f'{addr} connected')
+		except Exception as e:
+			print('Exception', e)
+			break
+
+def update_board(balls, game):
+	gui.render(balls, turn)
 
 
 def start_game():
-    pass
+	game = classes.Game(1, 1)
+	balls = [game.white_ball]
+	while True:
+		update_board(balls, game)
+		for player in players:
+			client_communication(player, balls)
 
 
 if __name__ == "__main__":
+	SERVER.listen(2)
+	print('waiting for 2 players ...')
+	wait_for_connection()
     start_game()
+    SERVER.close()
