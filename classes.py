@@ -7,15 +7,18 @@ gamma = 0.5
 
 
 class Game:
-    def __init__(self):
-        pass
+    def __init__(self, *args):
+        self.white_ball = Ball(
+            pos=[0.5, 0.5], vel=[0, 0], color=(255, 255, 255), number="1"
+        )
 
 
 class Ball:
-    def __init__(self, pos, vel, other=None):
+    def __init__(self, pos, vel, color=None, number=None, *args):
         self.pos = pos
         self.vel = vel
-        self.other = other
+        self.color = color
+        self.number = number
 
     def move(self):
         self.pos[0] *= gamma
@@ -25,6 +28,7 @@ class Ball:
         return self.pos
 
 
+"""
 from p5 import *
 
 HEIGHT = 600
@@ -55,4 +59,6 @@ def draw():
 
 
 run()
+
+"""
 
