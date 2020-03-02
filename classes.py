@@ -23,7 +23,7 @@ color_number = [
 
 class Game:
     def __init__(self, off_x=0, off_y=0):
-        self.balls = [Ball(i, off_x, off_y) for i in color_number]
+        self.white = ball(0, (255, 255, 255), [0.5, 0.5])
         self.off_x, self.off_y = off_x, off_y
 
     def make_shot(self):
@@ -45,20 +45,20 @@ class Player:
         pass
 
 
-class vec(object):
+class posvec(object):
     def __init__(self, x, y):
         self.x = x
         self.y = y
 
     def __add__(self, other):
-        return vec(self.x + other.x, self.y + other.y)
+        return posvec(self.x + other.x, self.y + other.y)
 
     def __sub__(self, other):
-        return vec(self.x - other.x, self.y - other.y)
+        return posvec(self.x - other.x, self.y - other.y)
 
     def __mul__(self, other):
         if type(other) == int or type(other) == float:
-            return vec(self.x * other, self.y * other)
+            return posvec(self.x * other, self.y * other)
         else:
             return self.x * other.x + self.y * other.y
 
@@ -67,46 +67,4 @@ class vec(object):
 
 
 G = Game(10, 10)
-"""
-from p5 import *
 
-
-def setup():
-    size(640, 360)
-    no_stroke()
-    background(204)
-
-
-def draw():
-    for i in G.balls:
-        circle(tuple(i.position), 5)
-
-
-run()
-"""
-
-from p5 import *
-
-
-def setup():
-    size(640, 360)
-    no_stroke()
-    background(204)
-
-
-def draw():
-    if mouse_is_pressed:
-        fill(random_uniform(255), random_uniform(127), random_uniform(51), 127)
-    else:
-        fill(255, 15)
-
-    circle_size = random_uniform(low=10, high=80)
-
-    circle((mouse_x, mouse_y), circle_size)
-
-
-def key_pressed(event):
-    background(204)
-
-
-run()

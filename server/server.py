@@ -49,7 +49,9 @@ class Player:
         pass
 
 
-G = Game()
-for i in G.balls:
-    print(i.id, i.color)
+def start_game():
+    pass
 
+
+if __name__ == "__main__":
+    start_game()
