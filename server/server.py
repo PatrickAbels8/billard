@@ -8,7 +8,7 @@ parrentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parrentdir)
 
 import classes
-import frontend.gui as gui
+# import frontend.gui as gui
 
 HOST = "127.0.0.1"
 PORT = 5500
@@ -22,21 +22,21 @@ players = []
 turn = True
 
 color_number = [
-    [1, (204, 214, 39)],
-    [9, (204, 214, 39)],
-    [2, (27, 78, 213)],
-    [10, (27, 78, 213)],
-    [3, (213, 35, 27)],
-    [11, (213, 35, 27)],
-    [4, (153, 24, 176)],
-    [12, (153, 24, 176)],
-    [5, (226, 137, 37)],
-    [13, (226, 137, 37)],
-    [6, (58, 201, 19)],
-    [14, (58, 201, 19)],
-    [7, (131, 4, 4)],
-    [15, (131, 4, 4)],
-    [8, (0, 0, 0)],
+	[1, (204, 214, 39)],
+	[9, (204, 214, 39)],
+	[2, (27, 78, 213)],
+	[10, (27, 78, 213)],
+	[3, (213, 35, 27)],
+	[11, (213, 35, 27)],
+	[4, (153, 24, 176)],
+	[12, (153, 24, 176)],
+	[5, (226, 137, 37)],
+	[13, (226, 137, 37)],
+	[6, (58, 201, 19)],
+	[14, (58, 201, 19)],
+	[7, (131, 4, 4)],
+	[15, (131, 4, 4)],
+	[8, (0, 0, 0)],
 ]
 
 
@@ -51,9 +51,11 @@ def client_communication(player, balls):
 	client = player.client
 	while True:
 		shot = client.recv(BUFSIZ)
+		pl_id = 1 if player.first else 2
 		for ball in balls:
 			if ball.number == '0':
-				ball.move(shot)
+				# ball.move(shot)
+				print(f'Player {pl_id}: {shot}')
 		turn = not turn
 
 
@@ -70,7 +72,8 @@ def wait_for_connection():
 			break
 
 def update_board(balls, game):
-	gui.render(balls, turn)
+	pass
+	#gui.render(balls, turn)
 
 
 def start_game():
@@ -86,5 +89,5 @@ if __name__ == "__main__":
 	SERVER.listen(2)
 	print('waiting for 2 players ...')
 	wait_for_connection()
-    start_game()
-    SERVER.close()
+	start_game()
+	SERVER.close()
