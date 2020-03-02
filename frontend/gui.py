@@ -46,11 +46,11 @@ def draw_window(balls, turn):
     player = FONT.render(f"Player {player} ...", 1, (255, 255, 255))
     win.blit(player, (int(WIDTH / 2) - player.get_width(), 5))
 
-    for ind, color, pos in balls:
-        x, y = pos
-        x = int(x * 10)
-        y = int(y * 10)
-        pygame.draw.circle(win, color, (x, y), 10)
+    for ball in balls:
+        x, y = ball.pos
+        x = int(x*BOARD_WIDTH+MARGIN)
+        y = int(y*BOARD_HEIGHT+MARGIN)
+        pygame.draw.circle(win, ball.color, (x, y), 10)
 
     pygame.display.update()
 
