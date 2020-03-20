@@ -10,7 +10,10 @@ class ClientProtocol(WebSocketClientProtocol):
 	player_id = '0'
 
 	def makeShot(self, board):
-		return input('shot? ')
+		shot = ''
+		while not '_' in shot:
+			shot = input('shot? ')
+		return shot
 
 	def onOpen(self):
 		print('CONNECTED TO SERVER')

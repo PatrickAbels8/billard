@@ -1,4 +1,6 @@
 import sys
+import os
+from time import sleep
 from twisted.internet import reactor
 from twisted.web.server import Site
 from twisted.web.static import File
@@ -11,17 +13,23 @@ def new_game():
 	print('--- NEW GAME ---')
 	factory.shots = []
 	init()
-	tick = LoopingCall(game_tick, (factory.shots, ))
+	tick = LoopingCall(game_tick, factory.shots)
 	tick.start(1.0/FPS)
 
 class ServerProtocol(WebSocketServerProtocol):
 
+	def read_balls(self): # todo alwas one shot behind
+		if os.path.exists('board.txt'):
+			with open('board.txt', 'r') as f:
+				return f.read()
+		else:
+			return ''
+
 	def render(self, shot):
 		self.factory.shots.append(shot)
-		print(self.factory.shots)
 
 	def broadcastBoard(self):
-		self.factory.broadcast(self.factory.turn + "'s Turn: BOARD")
+		self.factory.broadcast(self.factory.turn + "'s Turn:" + self.read_balls())
 
 	def onOpen(self):
 		self.factory.register(self)
@@ -35,10 +43,11 @@ class ServerProtocol(WebSocketServerProtocol):
 			shot = payload.decode('utf8')
 			print(self.factory.turn + ': ' + shot)
 			self.render(shot)
+			sleep(2)
 			self.factory.turn = '1' if self.factory.turn == '0' else '0'
 			self.broadcastBoard()
 
-	def connectionLost(self, reason):
+	def connectionLost(self, reason): # todo deconnect clients if server crashes
 		WebSocketServerProtocol.connectionLost(self, reason)
 		self.factory.unregister(self)
 

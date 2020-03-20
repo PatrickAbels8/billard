@@ -2,7 +2,7 @@ import pygame
 from twisted.internet import reactor
 
 win = None
-FPS = 30
+FPS = 10
 HEIGHT = 600
 WIDTH = 1200
 
@@ -43,6 +43,15 @@ class Ball:
 		self.color = color
 		self.number = number
 
+	def move(self, shot='0_0'):
+		direction, power = shot.split('_')
+		direction = int(direction)
+		power = int(power)
+		print('LETS MOVE TO', direction, ' BY ', power)
+
+		x, y = self.pos
+		self.pos = [x+power*(0.01), y-power*(direction*0.01)]
+
 	# def move(self):
  #        # self.pos[0] += (ttm() - self.t) * self.vel[0]
  #        # self.pos[1] += (ttm() - self.t) * self.vel[1]
@@ -61,9 +70,10 @@ BALLS = [Ball(number=str(num), color=col, pos=[BACK_COL-x*BALL_RADIUS/BOARD_WIDT
 	if num != 0 else Ball(number=str(num), color=col, pos=[x, y], vel=[0, 0]) for (num, col, (x, y)) in Balls]
 
 def init():
-	global win
+	global win, BALLS
 	win = pygame.display.set_mode((WIDTH, HEIGHT))
 	win.fill((0, 0, 0))
+	save_balls(BALLS)
 
 
 def redraw():
@@ -92,9 +102,25 @@ def redraw():
 	pygame.display.update()
 
 
+def save_balls(balls):
+	return_string = ''
+	for ball in balls:
+		return_string += ball.number
+		return_string += ','
+		return_string += str(ball.pos[0])
+		return_string += ','
+		return_string += str(ball.pos[1])
+		return_string += ';'
+
+	with open('board.txt', 'w') as f:
+		f.write(return_string)
+
+
+shots_made = []
+
 '''
 function to call every FPS seconds
-:param shots: list of shots made so far
+:param shots: list of shots made so far, shot = "dir_power"
 '''
 def game_tick(shots):
 	pygame.init()
@@ -102,5 +128,13 @@ def game_tick(shots):
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
 			reactor.stop()
+
+	global shots_made, BALLS
+	print(shots_made)
+	if len(shots) > len(shots_made):
+		BALLS[0].move(shots[-1])
+		save_balls(BALLS)
+		shots_made.append(shots[-1])
+
 	redraw()
 	return True
