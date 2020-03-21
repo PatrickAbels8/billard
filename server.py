@@ -43,7 +43,6 @@ class ServerProtocol(WebSocketServerProtocol):
 			shot = payload.decode('utf8')
 			print(self.factory.turn + ': ' + shot)
 			self.render(shot)
-			sleep(2)
 			self.factory.turn = '1' if self.factory.turn == '0' else '0'
 			self.broadcastBoard()
 

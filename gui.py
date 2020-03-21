@@ -3,6 +3,7 @@ from twisted.internet import reactor
 
 win = None
 FPS = 10
+FPS_SHOT = 30
 HEIGHT = 600
 WIDTH = 1200
 
@@ -43,14 +44,12 @@ class Ball:
 		self.color = color
 		self.number = number
 
-	def move(self, shot='0_0'):
-		direction, power = shot.split('_')
-		direction = int(direction)
-		power = int(power)
-		print('LETS MOVE TO', direction, ' BY ', power)
-
+	def move(self, shot=(0, 0)):
+		direction, power = shot
+		# self.vel +=  power
 		x, y = self.pos
-		self.pos = [x+power*(0.01), y-power*(direction*0.01)]
+		self.pos = [x+self.vel*(0.01), y-self.vel*(direction*0.01)]
+		self.vel -= 1
 
 	# def move(self):
  #        # self.pos[0] += (ttm() - self.t) * self.vel[0]
@@ -67,7 +66,7 @@ class Ball:
 
 
 BALLS = [Ball(number=str(num), color=col, pos=[BACK_COL-x*BALL_RADIUS/BOARD_WIDTH, BACK_ROW-y*BALL_RADIUS/BOARD_HEIGHT], vel=[0, 0]) 
-	if num != 0 else Ball(number=str(num), color=col, pos=[x, y], vel=[0, 0]) for (num, col, (x, y)) in Balls]
+	if num != 0 else Ball(number=str(num), color=col, pos=[x, y], vel=0) for (num, col, (x, y)) in Balls]
 
 def init():
 	global win, BALLS
@@ -76,8 +75,8 @@ def init():
 	save_balls(BALLS)
 
 
-def redraw():
-	global win, rect_border, rect_table, BALLS, MARGIN, BALL_RADIUS, BOARD_WIDTH, BOARD_HEIGHT
+def redraw(balls):
+	global win, rect_border, rect_table, MARGIN, BALL_RADIUS, BOARD_WIDTH, BOARD_HEIGHT
 	pygame.draw.rect(win, (238, 118, 33), rect_border)
 	pygame.draw.rect(win, (0, 255, 0), rect_table)
 	[pygame.draw.circle(win, (238, 118, 33), (hole_x, hole_y), BALL_RADIUS) for hole_x, hole_y in [
@@ -88,7 +87,7 @@ def redraw():
 		(MARGIN+int(0.5*BOARD_WIDTH), MARGIN+BOARD_HEIGHT-int(0.5*BALL_RADIUS)),
 		(MARGIN+int(0.5*BALL_RADIUS), MARGIN+BOARD_HEIGHT-int(0.5*BALL_RADIUS)),
 	]]
-	for ball in BALLS:
+	for ball in balls:
 		x, y = ball.pos
 		x = int(x*BOARD_WIDTH+MARGIN)
 		y = int(y*BOARD_HEIGHT+MARGIN)
@@ -116,12 +115,37 @@ def save_balls(balls):
 		f.write(return_string)
 
 
-shots_made = []
+def quiet_board(balls):
+	for ball in balls:
+		if ball.vel != 0:
+			return False
+	return True
+
+'''
+shot loop, change positions (call move on balls recursively) and redraw until board is quit
+:param shot: "dir_pow"
+'''
+def shoot(shot):
+	global BALLS, FPS_SHOT
+	clock = pygame.time.Clock()
+	direction, power = shot.split('_')
+	direction = int(direction)
+	power = int(power)
+	BALLS[0].vel = power
+	while(not quiet_board(BALLS)):
+		# call move on BALLS[0]
+		# check for collisions with other balls
+		# for each collision, reduce power and call move on them as well, and so on
+		clock.tick(FPS_SHOT)
+		BALLS[0].move((direction, power))
+		redraw(BALLS)
+
 
 '''
 function to call every FPS seconds
 :param shots: list of shots made so far, shot = "dir_power"
 '''
+shots_made = []
 def game_tick(shots):
 	pygame.init()
 	pygame.display.set_caption('Billard')
@@ -132,9 +156,12 @@ def game_tick(shots):
 	global shots_made, BALLS
 	print(shots_made)
 	if len(shots) > len(shots_made):
-		BALLS[0].move(shots[-1])
+		cur_shot = shots[-1]
+		# shoot(cur_shot)
+		BALLS[0].vel = int(cur_shot.split('_')[1])
+		BALLS[0].move((int(cur_shot.split('_')[0]), int(cur_shot.split('_')[1])))
 		save_balls(BALLS)
-		shots_made.append(shots[-1])
+		shots_made.append(cur_shot)
 
-	redraw()
+	redraw(BALLS)
 	return True
