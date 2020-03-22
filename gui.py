@@ -1,5 +1,7 @@
 import pygame
 from twisted.internet import reactor
+from math import sqrt, acos, cos, sin
+import numpy as np
 
 win = None
 FPS = 10
@@ -7,7 +9,7 @@ FPS_SHOT = 30
 HEIGHT = 600
 WIDTH = 1200
 
-MARGIN = 40
+MARGIN = 0 # 40
 BORDER = 5
 BOARD_HEIGHT = HEIGHT - 2 * MARGIN
 BOARD_WIDTH = WIDTH - 2 * MARGIN
@@ -44,12 +46,77 @@ class Ball:
 		self.color = color
 		self.number = number
 
-	def move(self, shot=(0, 0)):
-		direction, power = shot
-		# self.vel +=  power
+		self.direction = (0, 0)
+
+	def move(self):
+		# shot_direction, shot_power = shot
+		dir_x, dir_y = self.direction
 		x, y = self.pos
-		self.pos = [x+self.vel*(0.01), y-self.vel*(direction*0.01)]
-		self.vel -= 1
+		self.pos = [x+self.vel*(dir_x*0.01), y-self.vel*(dir_y*0.01)]
+		self.vel -= 1 # todo smaller to be realistic
+
+	'''
+	if it bounces on a wall it inverses its direction, else nothing happens
+	'''
+	def bounce(self): # todo take ball radius into count / maybe <= and >=
+		pos_x, pos_y = self.pos
+		dir_x, dir_y = self.direction
+
+		# new_dir_x, new_dir_y = self.direction
+		if pos_x < 0 and dir_x < 0: # left border
+			dir_x *= -1
+			print('left')
+		if pos_y < 0 and dir_y > 0: # top border
+			dir_y *= -1
+			print('top')
+		if pos_x > 1 and dir_x > 0: # right border
+			dir_x *= -1
+			print('right')
+		if pos_y > 1 and dir_y < 0: # down border
+			dir_y *= -1
+			print('down')
+		self.direction = (dir_x, dir_y)
+
+	'''
+	collide is called on self with every other ball
+	todo: every collision is tested 2 times, only do that once
+	'''
+	def crash(self, balls, index):
+		for i in range(len(balls)):
+			if i != index:
+				self.collide(balls[i])
+
+	'''
+	if self and ball collide they bounce, else nothing happens
+	'''
+	def collide(self, ball):
+		global BALL_RADIUS, BOARD_WIDTH, BOARD_HEIGHT
+
+		dx = self.pos[0]-ball.pos[0]
+		dy = self.pos[1]-ball.pos[1]
+		distance = sqrt(pow(BOARD_WIDTH*dx, 2) + pow(BOARD_HEIGHT*dy, 2))
+
+		if distance <= 2*BALL_RADIUS:
+			if self.vel > 0 or ball.vel > 0:
+				# 1. angle mirrors
+				# 2. energy decreases
+				# 3. angle out factor depending on angle in
+				# 4. all depending on angle of other ball
+				(dir_x, dir_y) = self.direction
+				denominator = np.abs(np.dot((dir_x, dir_y), (dx, dy)))
+				nominator = np.linalg.norm((dir_x, dir_y))*np.linalg.norm((dx, dy))
+				beta_in = acos(denominator/nominator)
+				beta_out = 2*beta_in
+				R_beta = [[cos(beta_out), sin(beta_out)], [-sin(beta_out), cos(beta_out)]]
+				new_dir_x, new_dir_y = np.dot((dir_x, dir_y), R_beta)
+				print(denominator)
+				print(nominator)
+				print(beta_in)
+				print(beta_out)
+				print(R_beta)
+				print(new_dir_x)
+				print(new_dir_y)
+				self.direction = (int(new_dir_x), int(new_dir_y))
 
 	# def move(self):
  #        # self.pos[0] += (ttm() - self.t) * self.vel[0]
@@ -64,15 +131,23 @@ class Ball:
  #        x, y = self.pos
  #        self.pos = [x+0.03, y]
 
+DEFAULT_BALLS = [Ball(number=str(num), color=col, pos=[BACK_COL-x*BALL_RADIUS/BOARD_WIDTH, BACK_ROW-y*BALL_RADIUS/BOARD_HEIGHT], vel=0) 
+	if num != 0 else Ball(number=str(num), color=col, pos=[x, y], vel=0) for (num, col, (x, y)) in Balls]
 
-BALLS = [Ball(number=str(num), color=col, pos=[BACK_COL-x*BALL_RADIUS/BOARD_WIDTH, BACK_ROW-y*BALL_RADIUS/BOARD_HEIGHT], vel=[0, 0]) 
+BALLS = [Ball(number=str(num), color=col, pos=[BACK_COL-x*BALL_RADIUS/BOARD_WIDTH, BACK_ROW-y*BALL_RADIUS/BOARD_HEIGHT], vel=0) 
 	if num != 0 else Ball(number=str(num), color=col, pos=[x, y], vel=0) for (num, col, (x, y)) in Balls]
 
 def init():
-	global win, BALLS
+	global win, BALLS, shots_made, DEFAULT_BALLS
 	win = pygame.display.set_mode((WIDTH, HEIGHT))
 	win.fill((0, 0, 0))
+
+	shots_made= []
+	BALLS = DEFAULT_BALLS # todo balls dont reset visually
+
+	redraw(BALLS)
 	save_balls(BALLS)
+	print(shots_made)
 
 
 def redraw(balls):
@@ -113,37 +188,49 @@ def save_balls(balls):
 
 	with open('board.txt', 'w') as f:
 		f.write(return_string)
+		# print('written balls.')
 
 
 def quiet_board(balls):
 	for ball in balls:
-		if ball.vel != 0:
+		# print('vel: ', ball.vel)
+		if ball.vel > 0:
 			return False
 	return True
 
 '''
 shot loop, change positions (call move on balls recursively) and redraw until board is quit
-:param shot: "dir_pow"
+:param dir: for dir[0] in x go dir[1] in y
+:param power: factor of 0.01 in x and y
 '''
-def shoot(shot):
+def shoot(direction ,power):
+	# print('dir: %i, pow: %i' %(direction, power))
 	global BALLS, FPS_SHOT
 	clock = pygame.time.Clock()
-	direction, power = shot.split('_')
-	direction = int(direction)
-	power = int(power)
+
 	BALLS[0].vel = power
+	BALLS[0].direction = direction
+
 	while(not quiet_board(BALLS)):
+		clock.tick(FPS_SHOT)
+
 		# call move on BALLS[0]
 		# check for collisions with other balls
 		# for each collision, reduce power and call move on them as well, and so on
-		clock.tick(FPS_SHOT)
-		BALLS[0].move((direction, power))
+		for i in range(len(BALLS)):
+			BALLS[i].move()
+			BALLS[i].bounce()
+			# BALLS[i].crash(BALLS, i)
+
+
 		redraw(BALLS)
+	# print('move done.')
 
 
 '''
 function to call every FPS seconds
 :param shots: list of shots made so far, shot = "dir_power"
+... dir: -1/-3 means x=-1 y=-3
 '''
 shots_made = []
 def game_tick(shots):
@@ -154,14 +241,16 @@ def game_tick(shots):
 			reactor.stop()
 
 	global shots_made, BALLS
-	print(shots_made)
 	if len(shots) > len(shots_made):
 		cur_shot = shots[-1]
-		# shoot(cur_shot)
-		BALLS[0].vel = int(cur_shot.split('_')[1])
-		BALLS[0].move((int(cur_shot.split('_')[0]), int(cur_shot.split('_')[1])))
+		cur_dir = int(cur_shot.split('_')[0].split('/')[0]), int(cur_shot.split('_')[0].split('/')[1])		
+		cur_pow = int(cur_shot.split('_')[1])
+		shoot(cur_dir, cur_pow)
+		# BALLS[0].vel = cur_pow
+		# BALLS[0].move(cur_dir, cur_pow)
 		save_balls(BALLS)
 		shots_made.append(cur_shot)
+		print(shots_made)
 
-	redraw(BALLS)
+	# redraw(BALLS)
 	return True

@@ -25,7 +25,7 @@ class ClientProtocol(WebSocketClientProtocol):
 				self.player_id = msg.split()[1]
 			else:
 				if msg[0] == self.player_id:
-					print(msg)
+					# print(msg)
 					board = msg.split(':')[1]
 					shot = self.makeShot(board)
 					self.sendMessage(shot.encode('utf8'))

@@ -9,16 +9,21 @@ from autobahn.twisted.websocket import WebSocketServerProtocol, WebSocketServerF
 from gui import game_tick, FPS, init
 from twisted.internet.task import LoopingCall
 
+'''
+TODO
+- 
+'''
+
 def new_game():
 	print('--- NEW GAME ---')
 	factory.shots = []
 	init()
-	tick = LoopingCall(game_tick, factory.shots)
-	tick.start(1.0/FPS)
+	# tick = LoopingCall(game_tick, factory.shots)
+	# tick.start(1.0/FPS)
 
 class ServerProtocol(WebSocketServerProtocol):
 
-	def read_balls(self): # todo alwas one shot behind
+	def read_balls(self):
 		if os.path.exists('board.txt'):
 			with open('board.txt', 'r') as f:
 				return f.read()
@@ -26,7 +31,10 @@ class ServerProtocol(WebSocketServerProtocol):
 			return ''
 
 	def render(self, shot):
+		# print('start render: ', shot)
 		self.factory.shots.append(shot)
+		game_tick(self.factory.shots)
+		# print('end render: ', shot)
 
 	def broadcastBoard(self):
 		self.factory.broadcast(self.factory.turn + "'s Turn:" + self.read_balls())
